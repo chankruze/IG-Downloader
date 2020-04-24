@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">IG Downloader</string>
+
+    <string name="hint_url">Post URL</string>
+    <string name="helper_url">i.e. https://www.instagram.com/p/BWVHf_QlX6y</string>
+
+    <string name="str_developer">Developed with ❤ by chankruze</string>
+    <string name="str_load">load</string>
+    <string name="str_download">download</string>
+</resources>

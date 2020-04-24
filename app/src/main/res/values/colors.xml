@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FDD835</color>
+    <color name="colorPrimaryDark">@color/colorDarkBg</color>
+    <color name="colorAccent">#42A5F5</color>
+
+    <color name="colorTextPrimary">#000000</color>
+    <color name="colorTextSecondary">#7E7E7E</color>
+
+    <color name="colorFileIcon">#ff737373</color>
+    <color name="colorFileIconTorrent">#4CAF50</color>
+
+    <color name="colorGray">#5E5F73</color>
+
+    <color name="colorDarkBg">#FFFFFF</color>
+
+    <color name="colorTextPrimaryProfile">@color/colorTextPrimary</color>
+    <color name="colorTextSecondaryProfile">@color/colorTextSecondary</color>
+
+    <color name="colorButtonCopy">#43A047</color>
+
+    <color name="colorTransferSheetBg">#3C4556</color>
+    <color name="colorTransferSheetText">#FFFFFF</color>
+
+    <color name="colorCardBg">#FFFFFF</color>
+
+    <color name="textColorHeading">#5E5F73</color>
+</resources>
