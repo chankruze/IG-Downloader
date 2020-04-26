@@ -8,5 +8,5 @@
     <color name="colorDarkBg">#FFFFFF</color>
     <color name="colorToolbar">@android:color/white</color>
     <color name="colorToolbarItem">#000000</color>
-    <color name="colorStatusBar"></color>
+    <color name="colorStatusBar">#E3E5E8</color>
 </resources>
