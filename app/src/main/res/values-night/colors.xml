@@ -5,7 +5,8 @@
     <color name="colorAccent">#42A5F5</color>
     <color name="colorTextPrimary">#EEE8D5</color>
     <color name="colorTextSecondary">#B0BEC5</color>
-    <color name="colorDarkBg">#000000</color>
-    <color name="colorToolbar">#292B2F</color>
+    <color name="colorDarkBg">#36393F</color>
+    <color name="colorToolbar">#2F3136</color>
     <color name="colorToolbarItem">#FFFFFF</color>
+    <color name="colorStatusBar">#292B2F</color>
 </resources>
