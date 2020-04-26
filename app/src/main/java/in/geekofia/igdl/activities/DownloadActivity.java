@@ -13,19 +13,23 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
 import org.jsoup.Jsoup;
@@ -37,18 +41,26 @@ import java.io.File;
 import java.io.IOException;
 
 import in.geekofia.igdl.R;
+import in.geekofia.igdl.interfaces.ShortenApi;
+import in.geekofia.igdl.models.ShortUrl;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DownloadActivity extends AppCompatActivity implements View.OnClickListener {
+public class DownloadActivity extends AppCompatActivity {
 
-    private String mURL, mTitle;
-    private TextView mPostURL;
+    private String mDataURL, mPostURL, mTitle;
     private VideoView mVideoView;
     private boolean isVideo;
     private Context mContext = this;
     private ImageView mImageView;
-    private MaterialButton downloadButton;
-    private DownloadManager downloadManager;
+    private FrameLayout frameLayout;
+    private ShortenApi shortenApi;
+
     private long downloadID;
+    private Toolbar mToolbar;
 
     public static final String TAG = "DownloadActivity";
 
@@ -60,46 +72,37 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
         Intent receivedIntent = getIntent();
         String receivedType = receivedIntent.getType();
 
-        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        registerReceiver(onDownloadComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         initViews();
 
-        if (receivedType.startsWith("text/")) {
-            mURL = receivedIntent.getStringExtra(Intent.EXTRA_TEXT);
+        if (receivedIntent.hasExtra("POST_URL")) {
+            mPostURL = receivedIntent.getStringExtra("POST_URL");
+        } else if (receivedType.startsWith("text/")) {
+            mPostURL = receivedIntent.getStringExtra(Intent.EXTRA_TEXT);
+        }
 
-            if (mURL != null) {
-                // if url is like https://www.instagram.com/p/B_NaTi2hfqD/?igshid=sfov1iuwoagd
-                if (mURL.contains("?igshid")) {
-                    mURL = mURL.split("\\?")[0];
-                }
-
-                mPostURL.setText(mURL);
-                new LoadPost().execute(mURL);
+        if (mPostURL != null) {
+            // if url is like https://www.instagram.com/p/B_NaTi2hfqD/?igshid=sfov1iuwoagd
+            if (mPostURL.contains("?igshid")) {
+                mPostURL = mPostURL.split("\\?")[0];
             }
+
+            new LoadPost().execute(mPostURL);
         }
     }
 
     private void initViews() {
-        mPostURL = findViewById(R.id.tv_post_url);
+        mToolbar = findViewById(R.id.dl_toolbar);
+        setSupportActionBar(mToolbar);
+
+        frameLayout = findViewById(R.id.fl_video_box);
         mVideoView = findViewById(R.id.vv_video);
         mImageView = findViewById(R.id.iv_image);
-        downloadButton = findViewById(R.id.btn_download);
-        downloadButton.setOnClickListener(this);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_download:
-                if (isStoragePermissionGranted()) {
-                    startDownload(mURL, mTitle);
-                }
-        }
-    }
-
-    public void setURL(String mURL) {
-        this.mURL = mURL;
+    public void setDataURL(String mDataURL) {
+        this.mDataURL = mDataURL;
     }
 
     public void setTitle(String mTitle) {
@@ -108,7 +111,6 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
 
     public void setVideo(boolean video) {
         isVideo = video;
-//        System.out.println("setVideo: [boolean]: " + video);
     }
 
 
@@ -169,24 +171,21 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
 
         @Override
         protected void onPostExecute(String string) {
+            Retrofit mRetrofit = initRetrofit();
+            shortenApi = mRetrofit.create(ShortenApi.class);
+
             if (isVideo) {
-                setURL(string);
+                setDataURL(string);
 
                 mVideoView.setVideoPath(string);
                 mVideoView.setMediaController(new MediaController(mContext));
                 mVideoView.start();
-                mVideoView.setVisibility(View.VISIBLE);
-
-                downloadButton.setEnabled(true);
-                //System.out.println("onPostExecute: [video]: " + string);
+                frameLayout.setVisibility(View.VISIBLE);
             } else {
-                setURL(string);
-                //System.out.println("onPostExecute: [image]: " + string);
+                setDataURL(string);
 
                 Picasso.get().load(string).into(mImageView);
                 mImageView.setVisibility(View.VISIBLE);
-
-                downloadButton.setEnabled(true);
             }
         }
     }
@@ -211,20 +210,19 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    public  boolean isStoragePermissionGranted() {
+    public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG,"Permission is granted");
+                Log.v(TAG, "Permission is granted");
                 return true;
             } else {
-                Log.v(TAG,"Permission is revoked");
+                Log.v(TAG, "Permission is revoked");
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 return false;
             }
-        }
-        else {
-            Log.v(TAG,"Permission is granted");
+        } else {
+            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -233,10 +231,82 @@ public class DownloadActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-            Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
-            //resume tasks needing this permission
-            startDownload(mURL, mTitle);
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
+            startDownload(mDataURL, mTitle);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.dl_toolbar, menu);
+        return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.tb_download:
+                if (isStoragePermissionGranted()) {
+                    startDownload(mDataURL, mTitle);
+                }
+                return true;
+            case R.id.tb_share:
+                sendDownloadURL();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private Retrofit initRetrofit() {
+        return new Retrofit.Builder()
+                .baseUrl("https://is.gd/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
+    private void sendDownloadURL() {
+        if (!mDataURL.isEmpty()) {
+            Call<ShortUrl> shortUrlCall = shortenApi.getShortURL("json", mDataURL);
+
+            shortUrlCall.enqueue(new Callback<ShortUrl>() {
+                @Override
+                public void onResponse(Call<ShortUrl> call, Response<ShortUrl> response) {
+                    if (response.isSuccessful()) {
+                        if (response.body() != null) {
+                            if (response.body().getShortenedURL() != null) {
+                                String message = "Original instagram post: " + mPostURL + "\n\nDownload link: " + response.body().getShortenedURL() + "\n\nSent via IG Downloader by chankruze";
+
+                                Intent sendIntent = new Intent();
+                                sendIntent.setAction(Intent.ACTION_SEND);
+                                sendIntent.putExtra(Intent.EXTRA_TEXT, message);
+                                sendIntent.setType("text/plain");
+
+                                Intent shareIntent = Intent.createChooser(sendIntent, "Share download link of this post with");
+                                startActivity(shareIntent);
+                            } else {
+                                Toast.makeText(getBaseContext(), "Can't short this URL ;(", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    } else {
+                        Toast.makeText(getBaseContext(), "Response: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call<ShortUrl> call, Throwable t) {
+                    Toast.makeText(getBaseContext(), "Throwable: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

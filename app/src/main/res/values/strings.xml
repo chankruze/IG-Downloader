@@ -1,10 +1,14 @@
 <resources>
     <string name="app_name">IG Downloader</string>
 
-    <string name="hint_url">Post URL</string>
+    <string name="hint_url">Enter instagram post URL here</string>
     <string name="helper_url">i.e. https://www.instagram.com/p/BWVHf_QlX6y</string>
 
     <string name="str_developer">Developed with ❤ by chankruze</string>
     <string name="str_load">load</string>
     <string name="str_download">download</string>
+    <string name="desc_image">Image Description</string>
+
+    <string name="title_download">Download</string>
+    <string name="title_share">Share</string>
 </resources>

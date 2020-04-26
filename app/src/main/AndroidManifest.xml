@@ -22,8 +22,7 @@
         </activity>
         <activity
             android:name=".activities.DownloadActivity"
-            android:excludeFromRecents="true"
-            android:theme="@style/DownloadDialogTheme">
+            android:excludeFromRecents="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

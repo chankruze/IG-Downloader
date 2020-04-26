@@ -3,24 +3,9 @@
     <color name="colorPrimary">#FFFFFF</color>
     <color name="colorPrimaryDark">@color/colorDarkBg</color>
     <color name="colorAccent">#42A5F5</color>
-
     <color name="colorTextPrimary">#EEE8D5</color>
     <color name="colorTextSecondary">#B0BEC5</color>
-
-    <color name="colorFileIcon">#ff737373</color>
-    <color name="colorFileIconTorrent">#4CAF50</color>
-
-    <color name="colorGray">#5E5F73</color>
-
-    <color name="colorDarkBg">#073642</color>
-
-    <color name="colorTextPrimaryProfile">@color/colorPrimary</color>
-    <color name="colorTextSecondaryProfile">#039BE5</color>
-
-    <color name="colorButtonCopy">#43A047</color>
-
-    <color name="colorTransferSheetBg">#3C4556</color>
-    <color name="colorTransferSheetText">#FFFFFF</color>
-
-    <color name="colorCardBg">#000000</color>
+    <color name="colorDarkBg">#000000</color>
+    <color name="colorToolbar">#292B2F</color>
+    <color name="colorToolbarItem">#FFFFFF</color>
 </resources>
