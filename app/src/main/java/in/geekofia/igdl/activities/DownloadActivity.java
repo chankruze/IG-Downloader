@@ -51,7 +51,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DownloadActivity extends AppCompatActivity {
 
-    private String mDataURL, mPostURL, mTitle;
+    private String mDataURL, mPostURL, mFileTitle;
     private VideoView mVideoView;
     private boolean isVideo;
     private Context mContext = this;
@@ -105,8 +105,12 @@ public class DownloadActivity extends AppCompatActivity {
         this.mDataURL = mDataURL;
     }
 
-    public void setTitle(String mTitle) {
-        this.mTitle = mTitle;
+    public void setFileTitle(String mFileTitle) {
+        this.mFileTitle = mFileTitle;
+    }
+
+    public String getFileTitle() {
+        return mFileTitle;
     }
 
     public void setVideo(boolean video) {
@@ -145,24 +149,26 @@ public class DownloadActivity extends AppCompatActivity {
                 Elements metas = document.getElementsByTag("meta");
 
                 for (Element element : metas) {
-                    if (element.hasAttr("content")) {
-                        String content = element.attr("content");
+                    String prop = element.attr("property");
+                    String content = element.attr("content");
 
-                        if (content.startsWith("https://instagram.fbbi1-1.fna.fbcdn.net")) {
-                            if (content.contains(".mp4")) {
-                                setVideo(true);
-                                url = element.attr("content");
-                                setTitle(url.split("\\?")[0].split("/")[5]);
-                            } else if (content.contains(".jpg")) {
-                                setVideo(false);
-                                url = element.attr("content");
-                                String[] splitedUrl = url.split("\\?")[0].split("/");
-                                setTitle(splitedUrl[splitedUrl.length - 1]);
-                            }
-                        }
+                    if (prop.equals("og:video") &&
+                            content.startsWith("https://instagram.fbbi1-1.fna.fbcdn.net") &&
+                            content.contains(".mp4")) {
+                        setVideo(true);
+                        url = element.attr("content");
+                        setFileTitle("VID_" + url.split("\\?")[0].split("/")[5]);
+                    } else if (prop.equals("og:image") &&
+                            content.startsWith("https://instagram.fbbi1-1.fna.fbcdn.net") &&
+                            content.contains(".jpg")) {
+                        setVideo(false);
+                        url = element.attr("content");
+                        String[] splitedUrl = url.split("\\?")[0].split("/");
+                        setFileTitle("IMG_" + splitedUrl[splitedUrl.length - 1]);
                     }
                 }
-            } catch (IOException e) {
+            } catch (
+                    IOException e) {
                 e.printStackTrace();
             }
 
@@ -173,6 +179,7 @@ public class DownloadActivity extends AppCompatActivity {
         protected void onPostExecute(String string) {
             Retrofit mRetrofit = initRetrofit();
             shortenApi = mRetrofit.create(ShortenApi.class);
+            setTitle(getFileTitle());
 
             if (isVideo) {
                 setDataURL(string);
@@ -188,6 +195,7 @@ public class DownloadActivity extends AppCompatActivity {
                 mImageView.setVisibility(View.VISIBLE);
             }
         }
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -233,7 +241,7 @@ public class DownloadActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
-            startDownload(mDataURL, mTitle);
+            startDownload(mDataURL, mFileTitle);
         }
     }
 
@@ -250,7 +258,7 @@ public class DownloadActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.tb_download:
                 if (isStoragePermissionGranted()) {
-                    startDownload(mDataURL, mTitle);
+                    startDownload(mDataURL, mFileTitle);
                 }
                 return true;
             case R.id.tb_share:

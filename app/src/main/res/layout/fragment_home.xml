@@ -30,6 +30,7 @@
         android:layout_below="@id/ti_one"
         android:layout_alignParentEnd="true"
         android:enabled="false"
+        android:layout_marginTop="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:text="@string/str_load"
