@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -49,9 +50,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static android.view.View.GONE;
+
 public class DownloadActivity extends AppCompatActivity {
 
     private String mDataURL, mPostURL, mFileTitle;
+    private ProgressBar mLoader;
     private VideoView mVideoView;
     private boolean isVideo;
     private Context mContext = this;
@@ -80,12 +84,17 @@ public class DownloadActivity extends AppCompatActivity {
             mPostURL = receivedIntent.getStringExtra("POST_URL");
         } else if (receivedType.startsWith("text/")) {
             mPostURL = receivedIntent.getStringExtra(Intent.EXTRA_TEXT);
+            Log.d(TAG, "onCreate: " + mPostURL);
         }
 
         if (mPostURL != null) {
             // if url is like https://www.instagram.com/p/B_NaTi2hfqD/?igshid=sfov1iuwoagd
             if (mPostURL.contains("?igshid")) {
-                mPostURL = mPostURL.split("\\?")[0];
+                if (mPostURL.length() <= 60) {
+                    mPostURL = mPostURL.split("\\?")[0];
+                } else {
+                    mPostURL = mPostURL.substring(mPostURL.indexOf("https://www.instagram.com/p/"), mPostURL.length() - 1);
+                }
             }
 
             new LoadPost().execute(mPostURL);
@@ -95,6 +104,8 @@ public class DownloadActivity extends AppCompatActivity {
     private void initViews() {
         mToolbar = findViewById(R.id.dl_toolbar);
         setSupportActionBar(mToolbar);
+
+        mLoader = findViewById(R.id.progress_horizontal);
 
         frameLayout = findViewById(R.id.fl_video_box);
         mVideoView = findViewById(R.id.vv_video);
@@ -183,15 +194,19 @@ public class DownloadActivity extends AppCompatActivity {
 
             if (isVideo) {
                 setDataURL(string);
+                frameLayout.setVisibility(View.VISIBLE);
 
                 mVideoView.setVideoPath(string);
                 mVideoView.setMediaController(new MediaController(mContext));
+                mVideoView.setKeepScreenOn(true);
                 mVideoView.start();
-                frameLayout.setVisibility(View.VISIBLE);
+
+                mVideoView.setOnPreparedListener(mp -> mLoader.setVisibility(GONE));
             } else {
                 setDataURL(string);
 
                 Picasso.get().load(string).into(mImageView);
+                mLoader.setVisibility(GONE);
                 mImageView.setVisibility(View.VISIBLE);
             }
         }

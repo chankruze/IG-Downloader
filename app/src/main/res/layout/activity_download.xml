@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/dl_toolbar"
@@ -9,9 +9,9 @@
 
     <ImageView
         android:id="@+id/iv_image"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/dl_toolbar"
+        android:layout_centerInParent="true"
         android:contentDescription="@string/desc_image"
         android:visibility="gone" />
 
@@ -28,5 +28,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/progress_horizontal"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        android:indeterminate="true" />
 
 </RelativeLayout>
