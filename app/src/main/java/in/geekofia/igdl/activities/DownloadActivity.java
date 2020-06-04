@@ -89,11 +89,24 @@ public class DownloadActivity extends AppCompatActivity {
 
         if (mPostURL != null) {
             // if url is like https://www.instagram.com/p/B_NaTi2hfqD/?igshid=sfov1iuwoagd
+
+            // if it is a post
+            String postFormat = "https://www.instagram.com/p/";
+
+            // if it's a igtv video
+            // https://www.instagram.com/tv/CA-kGBoAjP7/?utm_source=ig_web_copy_link
+            String igtvFormat = "https://www.instagram.com/tv/";
+
+
             if (mPostURL.contains("?igshid")) {
                 if (mPostURL.length() <= 60) {
                     mPostURL = mPostURL.split("\\?")[0];
                 } else {
-                    mPostURL = mPostURL.substring(mPostURL.indexOf("https://www.instagram.com/p/"), mPostURL.length() - 1);
+                    if (mPostURL.contains(postFormat)) {
+                        mPostURL = mPostURL.substring(mPostURL.indexOf(postFormat), postFormat.length() + 11);
+                    } else if (mPostURL.contains(igtvFormat)) {
+                        mPostURL = mPostURL.substring(mPostURL.indexOf(igtvFormat), igtvFormat.length() + 11);
+                    }
                 }
             }
 

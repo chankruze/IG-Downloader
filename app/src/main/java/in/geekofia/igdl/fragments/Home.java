@@ -20,6 +20,9 @@ import androidx.transition.Explode;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.activities.DownloadActivity;
 
@@ -60,14 +63,16 @@ public class Home extends Fragment implements View.OnClickListener {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.toString().trim().length() < 40) {
-                    mLoadButton.setEnabled(false);
-                    mLoadButton.setText(R.string.str_load);
-                } else {
+                Integer check[] = {39, 40, 41};
+                if (Arrays.asList(check).contains(s.toString().trim().length())) {
                     String url = s.toString().trim();
-                    if (url.startsWith("https://www.instagram.com/p/")) {
+                    if (url.startsWith("https://www.instagram.com/p/") ||
+                            url.startsWith("https://www.instagram.com/tv/")) {
                         mLoadButton.setEnabled(true);
                     }
+                } else {
+                    mLoadButton.setEnabled(false);
+                    mLoadButton.setText(R.string.str_load);
                 }
             }
         });
