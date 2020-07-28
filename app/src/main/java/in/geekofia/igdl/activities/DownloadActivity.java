@@ -278,8 +278,10 @@ public class DownloadActivity extends AppCompatActivity {
 
                     if (currPost.isVideo()) {
                         setDataURL(currPost.getVideoUrl());
+                        mFileTitle = "IMG_" + currPost.getVideoUrl().split("\\?")[0];
                     } else {
                         setDataURL(currPost.getImageUrl());
+                        mFileTitle = "VID_" + currPost.getImageUrl().split("\\?")[0];
                     }
                 }
 
