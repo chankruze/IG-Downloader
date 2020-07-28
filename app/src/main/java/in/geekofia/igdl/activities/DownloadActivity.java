@@ -1,6 +1,7 @@
 package in.geekofia.igdl.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,10 +18,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -30,19 +33,23 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.viewpager.widget.ViewPager;
 
-import com.squareup.picasso.Picasso;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import in.geekofia.igdl.R;
+import in.geekofia.igdl.adapters.ViewPagerAdapter;
 import in.geekofia.igdl.interfaces.ShortenApi;
+import in.geekofia.igdl.models.InstaPost;
 import in.geekofia.igdl.models.ShortUrl;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -51,23 +58,22 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.view.View.GONE;
+import static in.geekofia.igdl.utils.CustomFunctions.isPrivatePost;
 
 public class DownloadActivity extends AppCompatActivity {
 
     private String mDataURL, mPostURL, mFileTitle;
+    private ViewPager viewPager;
+//    private TextView pageCountView;
     private ProgressBar mLoader;
-    private VideoView mVideoView;
-    private boolean isVideo;
     private Context mContext = this;
-    private ImageView mImageView;
-    private FrameLayout frameLayout;
     private ShortenApi shortenApi;
 
     private long downloadID;
-    private Toolbar mToolbar;
 
     public static final String TAG = "DownloadActivity";
 
+    @SuppressLint("JavascriptInterface")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,30 +105,42 @@ public class DownloadActivity extends AppCompatActivity {
 
 
             if (mPostURL.contains("?igshid")) {
-                if (mPostURL.length() <= 60) {
-                    mPostURL = mPostURL.split("\\?")[0];
-                } else {
-                    if (mPostURL.contains(postFormat)) {
+                mPostURL = mPostURL.split("\\?")[0];
+
+                if (mPostURL.contains(postFormat)) {
+                    // check for private/public
+                    if (isPrivatePost(mPostURL, postFormat)) {
+//                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mPostURL));
+//                        startActivity(browserIntent);
+                    } else {
                         mPostURL = mPostURL.substring(mPostURL.indexOf(postFormat), postFormat.length() + 11);
-                    } else if (mPostURL.contains(igtvFormat)) {
-                        mPostURL = mPostURL.substring(mPostURL.indexOf(igtvFormat), igtvFormat.length() + 11);
+                        new LoadPost().execute(mPostURL);
                     }
+                } else if (mPostURL.contains(igtvFormat)) {
+                    // check for private/public
+                    mPostURL = mPostURL.substring(mPostURL.indexOf(igtvFormat), igtvFormat.length() + 11);
+                    new LoadPost().execute(mPostURL);
                 }
             }
 
-            new LoadPost().execute(mPostURL);
+
         }
     }
 
+    @JavascriptInterface
+    public void findPostCDN(String html) {
+//        writeToFile(html, this, "source.txt");
+    }
+
+
     private void initViews() {
-        mToolbar = findViewById(R.id.dl_toolbar);
+        Toolbar mToolbar = findViewById(R.id.dl_toolbar);
         setSupportActionBar(mToolbar);
 
-        mLoader = findViewById(R.id.progress_horizontal);
+        viewPager = findViewById(R.id.view_pager);
+//        pageCountView = findViewById(R.id.page_count);
 
-        frameLayout = findViewById(R.id.fl_video_box);
-        mVideoView = findViewById(R.id.vv_video);
-        mImageView = findViewById(R.id.iv_image);
+        mLoader = findViewById(R.id.progress_horizontal);
     }
 
     public void setDataURL(String mDataURL) {
@@ -135,10 +153,6 @@ public class DownloadActivity extends AppCompatActivity {
 
     public String getFileTitle() {
         return mFileTitle;
-    }
-
-    public void setVideo(boolean video) {
-        isVideo = video;
     }
 
 
@@ -160,68 +174,134 @@ public class DownloadActivity extends AppCompatActivity {
         unregisterReceiver(onDownloadComplete);
     }
 
-    private class LoadPost extends AsyncTask<String, Void, String> {
-
-        String url = "";
+    private class LoadPost extends AsyncTask<String, Void, ArrayList<InstaPost>> {
 
         @Override
-        protected String doInBackground(String... strings) {
+        protected ArrayList<InstaPost> doInBackground(String... strings) {
             Document document;
+            ArrayList<InstaPost> instaPosts = new ArrayList<>();
 
             try {
                 document = Jsoup.connect(strings[0]).get();
-                Elements metas = document.getElementsByTag("meta");
+//                Elements metas = document.getElementsByTag("meta");
+                Element body = document.getElementsByTag("body").get(0);
+                Element rawData = body.getElementsByTag("script").get(0);
 
-                for (Element element : metas) {
-                    String prop = element.attr("property");
-                    String content = element.attr("content");
+                JSONObject jsonData = new JSONObject(rawData.data().substring(20, rawData.data().length() - 1));
 
-                    if (prop.equals("og:video") &&
-                            content.startsWith("https://instagram.fbbi1-1.fna.fbcdn.net") &&
-                            content.contains(".mp4")) {
-                        setVideo(true);
-                        url = element.attr("content");
-                        setFileTitle("VID_" + url.split("\\?")[0].split("/")[5]);
-                    } else if (prop.equals("og:image") &&
-                            content.startsWith("https://instagram.fbbi1-1.fna.fbcdn.net") &&
-                            content.contains(".jpg")) {
-                        setVideo(false);
-                        url = element.attr("content");
-                        String[] splitedUrl = url.split("\\?")[0].split("/");
-                        setFileTitle("IMG_" + splitedUrl[splitedUrl.length - 1]);
-                    }
+                // $.entry_data.PostPage[*].graphql.shortcode_media.edge_sidecar_to_children.edges[*].node.display_url
+                JSONObject shortCodeMedia = jsonData.getJSONObject("entry_data")
+                        .getJSONArray("PostPage")
+                        .getJSONObject(0)
+                        .getJSONObject("graphql")
+                        .getJSONObject("shortcode_media");
+
+                // check type
+                switch (shortCodeMedia.getString("__typename")) {
+                    // only one video
+                    case "GraphVideo":
+                        InstaPost instaVideo = new InstaPost(shortCodeMedia.getString("id"),
+                                shortCodeMedia.getString("display_url"),
+                                shortCodeMedia.getBoolean("is_video"),
+                                shortCodeMedia.getString("video_url"),
+                                shortCodeMedia.getBoolean("has_audio"));
+
+                        instaPosts.add(instaVideo);
+                        Log.d(TAG, "doInBackground: " + instaVideo);
+                        break;
+
+                    // only one image
+                    case "GraphImage":
+                        InstaPost instaPost = new InstaPost(shortCodeMedia.getString("id"),
+                                shortCodeMedia.getString("display_url"),
+                                shortCodeMedia.getBoolean("is_video"));
+
+                        instaPosts.add(instaPost);
+                        Log.d(TAG, "doInBackground: " + instaPost);
+                        break;
+
+                    // multiple media (maybe mixed)
+                    case "GraphSidecar":
+                        JSONArray edges = shortCodeMedia
+                                .getJSONObject("edge_sidecar_to_children")
+                                .getJSONArray("edges");
+
+                        for (int i = 0; i < edges.length(); i++) {
+                            JSONObject node = edges.getJSONObject(i).getJSONObject("node");
+                            // check node prop for media type
+                            boolean isVideo = node.getBoolean("is_video");
+
+                            if (isVideo) {
+                                InstaPost instaVideo2 = new InstaPost(node.getString("id"),
+                                        node.getString("display_url"),
+                                        true,
+                                        node.getString("video_url"),
+                                        node.getBoolean("has_audio"));
+
+                                instaPosts.add(instaVideo2);
+                                Log.d(TAG, "doInBackground: " + instaVideo2);
+                            } else {
+                                InstaPost instaPost2 = new InstaPost(node.getString("id"),
+                                        node.getString("display_url"),
+                                        false);
+
+                                instaPosts.add(instaPost2);
+                                Log.d(TAG, "doInBackground: " + instaPost2);
+                            }
+                        }
+                        break;
                 }
-            } catch (
-                    IOException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
 
-            return url;
+            return instaPosts;
         }
 
         @Override
-        protected void onPostExecute(String string) {
+        protected void onPostExecute(ArrayList<InstaPost> instaPosts) {
+            // collect all urls and load them in viewpager
+
+            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(DownloadActivity.this, instaPosts);
+            viewPager.setAdapter(viewPagerAdapter);
+
+            viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    InstaPost currPost = instaPosts.get(position);
+                    setTitle(currPost.getId());
+
+                    if (currPost.isVideo()) {
+                        setDataURL(currPost.getVideoUrl());
+                    } else {
+                        setDataURL(currPost.getImageUrl());
+                    }
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
+
+            InstaPost firstPost = instaPosts.get(0);
+            setTitle(firstPost.getId());
+
+            if (firstPost.isVideo()) {
+                setDataURL(firstPost.getVideoUrl());
+                mFileTitle = "IMG_" + firstPost.getVideoUrl().split("\\?")[0];
+            } else {
+                setDataURL(firstPost.getImageUrl());
+                mFileTitle = "VID_" + firstPost.getImageUrl().split("\\?")[0];
+            }
+
             Retrofit mRetrofit = initRetrofit();
             shortenApi = mRetrofit.create(ShortenApi.class);
-            setTitle(getFileTitle());
-
-            if (isVideo) {
-                setDataURL(string);
-                frameLayout.setVisibility(View.VISIBLE);
-
-                mVideoView.setVideoPath(string);
-                mVideoView.setMediaController(new MediaController(mContext));
-                mVideoView.setKeepScreenOn(true);
-                mVideoView.start();
-
-                mVideoView.setOnPreparedListener(mp -> mLoader.setVisibility(GONE));
-            } else {
-                setDataURL(string);
-
-                Picasso.get().load(string).into(mImageView);
-                mLoader.setVisibility(GONE);
-                mImageView.setVisibility(View.VISIBLE);
-            }
         }
 
     }
