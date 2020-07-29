@@ -18,14 +18,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.JavascriptInterface;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -64,7 +59,6 @@ public class DownloadActivity extends AppCompatActivity {
 
     private String mDataURL, mPostURL, mFileTitle;
     private ViewPager viewPager;
-//    private TextView pageCountView;
     private ProgressBar mLoader;
     private Context mContext = this;
     private ShortenApi shortenApi;
@@ -103,9 +97,11 @@ public class DownloadActivity extends AppCompatActivity {
             // https://www.instagram.com/tv/CA-kGBoAjP7/?utm_source=ig_web_copy_link
             String igtvFormat = "https://www.instagram.com/tv/";
 
+            if (mPostURL.contains("https://www.instagram.com")) {
 
-            if (mPostURL.contains("?igshid")) {
-                mPostURL = mPostURL.split("\\?")[0];
+                if (mPostURL.contains("?igshid") || mPostURL.contains("?utm_source") || mPostURL.contains("?")) {
+                    mPostURL = mPostURL.split("\\?")[0];
+                }
 
                 if (mPostURL.contains(postFormat)) {
                     // check for private/public
@@ -122,39 +118,19 @@ public class DownloadActivity extends AppCompatActivity {
                     new LoadPost().execute(mPostURL);
                 }
             }
-
-
         }
     }
-
-    @JavascriptInterface
-    public void findPostCDN(String html) {
-//        writeToFile(html, this, "source.txt");
-    }
-
 
     private void initViews() {
         Toolbar mToolbar = findViewById(R.id.dl_toolbar);
         setSupportActionBar(mToolbar);
-
         viewPager = findViewById(R.id.view_pager);
-//        pageCountView = findViewById(R.id.page_count);
-
         mLoader = findViewById(R.id.progress_horizontal);
     }
 
     public void setDataURL(String mDataURL) {
         this.mDataURL = mDataURL;
     }
-
-    public void setFileTitle(String mFileTitle) {
-        this.mFileTitle = mFileTitle;
-    }
-
-    public String getFileTitle() {
-        return mFileTitle;
-    }
-
 
     private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
         @Override
@@ -260,7 +236,16 @@ public class DownloadActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(ArrayList<InstaPost> instaPosts) {
+            TextView pageNo = viewPager.getRootView().findViewById(R.id.page_count);
+            int crrPageNo = 1;
+            int totalPageNo = instaPosts.size();
             // collect all urls and load them in viewpager
+            if (instaPosts.size() > 1) {
+                pageNo.setVisibility(View.VISIBLE);
+                pageNo.setText(getString(R.string.crr_page_number, crrPageNo, totalPageNo));
+            } else {
+                pageNo.setVisibility(GONE);
+            }
 
             ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(DownloadActivity.this, instaPosts);
             viewPager.setAdapter(viewPagerAdapter);
@@ -275,6 +260,7 @@ public class DownloadActivity extends AppCompatActivity {
                 public void onPageSelected(int position) {
                     InstaPost currPost = instaPosts.get(position);
                     setTitle(currPost.getId());
+                    pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
 
                     if (currPost.isVideo()) {
                         setDataURL(currPost.getVideoUrl());

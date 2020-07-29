@@ -14,6 +14,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <TextView
+        android:id="@+id/page_count"
+        android:layout_below="@id/dl_toolbar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:background="#2d2c2a"
+        tools:text="1/2"
+        android:textColor="#ffffff"
+        android:padding="8dp"
+        android:textSize="18sp"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"/>
+
     <ProgressBar
         android:id="@+id/progress_horizontal"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
