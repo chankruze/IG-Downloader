@@ -1,41 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:layout_height="match_parent">
 
     <include
         android:id="@+id/dl_toolbar"
         layout="@layout/toolbar" />
 
-    <androidx.viewpager.widget.ViewPager
-        android:layout_below="@id/dl_toolbar"
-        android:id="@+id/view_pager"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_below="@id/dl_toolbar" />
+
+    <TextView
+        android:id="@+id/loading_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textSize="20sp"
+        android:text="@string/loading_post_hint"/>
 
     <TextView
         android:id="@+id/page_count"
-        android:layout_below="@id/dl_toolbar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:background="#2d2c2a"
-        tools:text="1/2"
-        android:textColor="#ffffff"
-        android:padding="8dp"
-        android:textSize="18sp"
+        android:layout_below="@id/dl_toolbar"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"/>
-
-    <ProgressBar
-        android:id="@+id/progress_horizontal"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginStart="64dp"
-        android:layout_marginEnd="64dp"
-        android:indeterminate="true" />
+        android:background="@drawable/rounded_rect"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_margin="8dp"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:text="1/2" />
 
 </RelativeLayout>

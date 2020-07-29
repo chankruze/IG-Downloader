@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,8 +59,7 @@ import static in.geekofia.igdl.utils.CustomFunctions.isPrivatePost;
 public class DownloadActivity extends AppCompatActivity {
 
     private String mDataURL, mPostURL, mFileTitle;
-    private ViewPager viewPager;
-    private ProgressBar mLoader;
+    private ViewPager2 viewPager2;
     private Context mContext = this;
     private ShortenApi shortenApi;
 
@@ -124,8 +124,7 @@ public class DownloadActivity extends AppCompatActivity {
     private void initViews() {
         Toolbar mToolbar = findViewById(R.id.dl_toolbar);
         setSupportActionBar(mToolbar);
-        viewPager = findViewById(R.id.view_pager);
-        mLoader = findViewById(R.id.progress_horizontal);
+        viewPager2 = findViewById(R.id.view_pager_2);
     }
 
     public void setDataURL(String mDataURL) {
@@ -236,7 +235,7 @@ public class DownloadActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(ArrayList<InstaPost> instaPosts) {
-            TextView pageNo = viewPager.getRootView().findViewById(R.id.page_count);
+            TextView pageNo = viewPager2.getRootView().findViewById(R.id.page_count);
             int crrPageNo = 1;
             int totalPageNo = instaPosts.size();
             // collect all urls and load them in viewpager
@@ -248,16 +247,12 @@ public class DownloadActivity extends AppCompatActivity {
             }
 
             ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(DownloadActivity.this, instaPosts);
-            viewPager.setAdapter(viewPagerAdapter);
+            viewPager2.setAdapter(viewPagerAdapter);
 
-            viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-                }
-
+            viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
                 @Override
                 public void onPageSelected(int position) {
+                    super.onPageSelected(position);
                     InstaPost currPost = instaPosts.get(position);
                     setTitle(currPost.getId());
                     pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
@@ -270,14 +265,13 @@ public class DownloadActivity extends AppCompatActivity {
                         mFileTitle = "VID_" + currPost.getImageUrl().split("\\?")[0];
                     }
                 }
-
-                @Override
-                public void onPageScrollStateChanged(int state) {
-
-                }
             });
 
             InstaPost firstPost = instaPosts.get(0);
+
+            TextView loadingPost = findViewById(R.id.loading_hint);
+            loadingPost.setVisibility(GONE);
+
             setTitle(firstPost.getId());
 
             if (firstPost.isVideo()) {
