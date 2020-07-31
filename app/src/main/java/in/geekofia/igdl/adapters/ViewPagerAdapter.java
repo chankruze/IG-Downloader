@@ -18,16 +18,16 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import in.geekofia.igdl.R;
-import in.geekofia.igdl.models.InstaPost;
+import in.geekofia.igdl.models.InstaMedia;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.InstaViewHolder> {
     private Context context;
-    private ArrayList<InstaPost> instaPosts;
+    private ArrayList<InstaMedia> instaMedia;
 
-    public ViewPagerAdapter(Context context, ArrayList<InstaPost> instaPosts) {
+    public ViewPagerAdapter(Context context, ArrayList<InstaMedia> instaMedia) {
         this.context = context;
-        this.instaPosts = instaPosts;
+        this.instaMedia = instaMedia;
     }
 
     @NonNull
@@ -39,17 +39,17 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Inst
 
     @Override
     public void onBindViewHolder(@NonNull InstaViewHolder holder, int position) {
-        InstaPost instaPost = instaPosts.get(position);
+        InstaMedia instaMedia = this.instaMedia.get(position);
 
-        if (instaPost.isVideo()) {
-            holder.videoView.setVideoPath(instaPost.getVideoUrl());
+        if (instaMedia.isVideo()) {
+            holder.videoView.setVideoPath(instaMedia.getVideoUrl());
             holder.videoView.setMediaController(new MediaController(context));
             holder.videoView.setKeepScreenOn(true);
             holder.videoView.start();
             holder.videoView.setVisibility(View.VISIBLE);
             holder.progressBar.setVisibility(View.GONE);
         } else {
-            Picasso.get().load(instaPost.getImageUrl()).into(holder.imageView, new Callback() {
+            Picasso.get().load(instaMedia.getImageUrl()).into(holder.imageView, new Callback() {
                 @Override
                 public void onSuccess() {
                     holder.imageView.setVisibility(View.VISIBLE);
@@ -66,7 +66,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Inst
 
     @Override
     public int getItemCount() {
-        return instaPosts.size();
+        return instaMedia.size();
     }
 
     public static class InstaViewHolder extends RecyclerView.ViewHolder {

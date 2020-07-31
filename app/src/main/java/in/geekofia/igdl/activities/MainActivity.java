@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void showRateApp() {
         AppRate.with(this)
                 .setInstallDays(1)

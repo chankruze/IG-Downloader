@@ -7,18 +7,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
-import in.geekofia.igdl.models.InstaPost;
+import in.geekofia.igdl.models.InstaMedia;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -50,8 +47,8 @@ public class CustomFunctions {
         }
     }
 
-    public static ArrayList<InstaPost> parseSource(Document document) {
-        ArrayList<InstaPost> instaPosts = new ArrayList<>();
+    public static ArrayList<InstaMedia> parseSource(Document document) {
+        ArrayList<InstaMedia> instaMedia = new ArrayList<>();
 
         try {
             Element body = document.getElementsByTag("body").get(0);
@@ -70,22 +67,22 @@ public class CustomFunctions {
             switch (shortCodeMedia.getString("__typename")) {
                 // only one video
                 case "GraphVideo":
-                    InstaPost instaVideoOnly = new InstaPost(shortCodeMedia.getString("id"),
+                    InstaMedia instaVideoOnly = new InstaMedia(shortCodeMedia.getString("id"),
                             shortCodeMedia.getString("display_url"),
                             shortCodeMedia.getBoolean("is_video"),
                             shortCodeMedia.getString("video_url"),
                             shortCodeMedia.getBoolean("has_audio"));
 
-                    instaPosts.add(instaVideoOnly);
+                    instaMedia.add(instaVideoOnly);
                     break;
 
                 // only one image
                 case "GraphImage":
-                    InstaPost instaPostOnly = new InstaPost(shortCodeMedia.getString("id"),
+                    InstaMedia instaMediaOnly = new InstaMedia(shortCodeMedia.getString("id"),
                             shortCodeMedia.getString("display_url"),
                             shortCodeMedia.getBoolean("is_video"));
 
-                    instaPosts.add(instaPostOnly);
+                    instaMedia.add(instaMediaOnly);
                     break;
 
                 // multiple media (maybe mixed)
@@ -100,17 +97,17 @@ public class CustomFunctions {
                         boolean isVideo = node.getBoolean("is_video");
 
                         if (isVideo) {
-                            InstaPost instaVideo = new InstaPost(node.getString("id"),
+                            InstaMedia instaVideo = new InstaMedia(node.getString("id"),
                                     node.getString("display_url"),
                                     true,
                                     node.getString("video_url"),
                                     node.getBoolean("has_audio"));
-                            instaPosts.add(instaVideo);
+                            instaMedia.add(instaVideo);
                         } else {
-                            InstaPost instaPost2 = new InstaPost(node.getString("id"),
+                            InstaMedia instaMedia2 = new InstaMedia(node.getString("id"),
                                     node.getString("display_url"),
                                     false);
-                            instaPosts.add(instaPost2);
+                            instaMedia.add(instaMedia2);
                         }
                     }
                     break;
@@ -119,6 +116,6 @@ public class CustomFunctions {
             e.printStackTrace();
         }
 
-        return instaPosts;
+        return instaMedia;
     }
 }

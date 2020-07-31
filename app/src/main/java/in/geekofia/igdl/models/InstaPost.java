@@ -1,71 +1,42 @@
 package in.geekofia.igdl.models;
 
-public class InstaPost {
-    String id, imageUrl, videoUrl;
-    boolean isVideo, hasAudio;
+import java.io.Serializable;
 
-    public InstaPost(String id, String imageUrl, boolean isVideo) {
-        this.id = id;
-        this.imageUrl = imageUrl;
-        this.isVideo = isVideo;
+public class InstaPost implements Serializable {
+    String postUrl, postCode, postType, postSourceCode;
+    Boolean isPrivate;
+
+    public InstaPost(String postUrl, String postCode, String postType) {
+        this.postUrl = postUrl;
+        this.postCode = postCode;
+        this.postType = postType;
     }
 
-    public InstaPost(String id, String imageUrl, boolean isVideo, String videoUrl, boolean hasAudio) {
-        this.id = id;
-        this.imageUrl = imageUrl;
-        this.isVideo = isVideo;
-        this.videoUrl = videoUrl;
-        this.hasAudio = hasAudio;
+    public String getPostUrl() {
+        return postUrl;
     }
 
-    public String getId() {
-        return id;
+    public String getPostCode() {
+        return postCode;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getPostType() {
+        return postType;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public Boolean isPrivate() {
+        return isPrivate;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setPrivate(Boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 
-    public String getVideoUrl() {
-        return videoUrl;
+    public String getPostSourceCode() {
+        return postSourceCode;
     }
 
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
-
-    public boolean isVideo() {
-        return isVideo;
-    }
-
-    public void setVideo(boolean video) {
-        isVideo = video;
-    }
-
-    public boolean isHasAudio() {
-        return hasAudio;
-    }
-
-    public void setHasAudio(boolean hasAudio) {
-        this.hasAudio = hasAudio;
-    }
-
-    @Override
-    public String toString() {
-        return "InstaPost{" +
-                "id='" + id + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", videoUrl='" + videoUrl + '\'' +
-                ", isVideo=" + isVideo +
-                ", hasAudio=" + hasAudio +
-                '}';
+    public void setPostSourceCode(String postSourceCode) {
+        this.postSourceCode = postSourceCode;
     }
 }

@@ -14,9 +14,8 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.Objects;
-
 import in.geekofia.igdl.R;
+import in.geekofia.igdl.models.InstaPost;
 
 import static in.geekofia.igdl.utils.Constants.DOWNLOAD_POST_FRAG;
 import static in.geekofia.igdl.utils.CustomFunctions.clipViewSourceURL;
@@ -26,6 +25,7 @@ public class PrivatePost extends Fragment implements View.OnClickListener {
     private String mPostURL;
     private Button copyURL, loadMedia;
     private TextInputEditText inputEditTextSource;
+    private InstaPost instaPost;
 
     @Nullable
     @Override
@@ -39,7 +39,10 @@ public class PrivatePost extends Fragment implements View.OnClickListener {
         Bundle bundle = this.getArguments();
 
         if (bundle != null) {
-            mPostURL = bundle.getString("POST_URL");
+            instaPost = (InstaPost) bundle.getSerializable("IG_POST");
+            if (instaPost != null) {
+                mPostURL = instaPost.getPostUrl();
+            }
         }
 
         return view;
@@ -61,8 +64,8 @@ public class PrivatePost extends Fragment implements View.OnClickListener {
                 break;
             case R.id.btn_load_media:
                 Bundle bundle = new Bundle();
-                bundle.putBoolean("isPrivate", true);
-                bundle.putString("POST_SRC", Objects.requireNonNull(inputEditTextSource.getText()).toString());
+                instaPost.setPostSourceCode(inputEditTextSource.getText().toString());
+                bundle.putSerializable("IG_POST", instaPost);
                 DownloadPost downloadPost = new DownloadPost();
                 downloadPost.setArguments(bundle);
 

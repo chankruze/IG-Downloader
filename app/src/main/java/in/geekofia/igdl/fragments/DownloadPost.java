@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.adapters.ViewPagerAdapter;
 import in.geekofia.igdl.interfaces.ShortenApi;
+import in.geekofia.igdl.models.InstaMedia;
 import in.geekofia.igdl.models.InstaPost;
 import in.geekofia.igdl.models.ShortUrl;
 import retrofit2.Call;
@@ -75,11 +76,16 @@ public class DownloadPost extends Fragment {
         Bundle bundle = this.getArguments();
 
         if (bundle != null) {
-            if (bundle.getBoolean("isPrivate")) {
-                renderPosts(parseSource(Jsoup.parse(bundle.getString("POST_SRC"))));
-            } else {
-                mPostURL = bundle.getString("POST_URL");
-                new LoadPost().execute(mPostURL);
+            if (bundle.getSerializable("IG_POST") != null) {
+                InstaPost instaPost = (InstaPost) bundle.getSerializable("IG_POST");
+
+                if (instaPost.isPrivate()) {
+                    mPostURL = instaPost.getPostUrl();
+                    renderPosts(parseSource(Jsoup.parse(instaPost.getPostSourceCode())));
+                } else {
+                    mPostURL = instaPost.getPostUrl();
+                    new LoadPost().execute(mPostURL);
+                }
             }
         }
 
@@ -91,50 +97,50 @@ public class DownloadPost extends Fragment {
         loadingPost = view.getRootView().findViewById(R.id.loading_hint);
     }
 
-    private void renderPosts(ArrayList<InstaPost> instaPosts) {
+    private void renderPosts(ArrayList<InstaMedia> instaMedias) {
         TextView pageNo = viewPager2.getRootView().findViewById(R.id.page_count);
         int crrPageNo = 1;
-        int totalPageNo = instaPosts.size();
+        int totalPageNo = instaMedias.size();
         // collect all urls and load them in viewpager
-        if (instaPosts.size() > 1) {
+        if (instaMedias.size() > 1) {
             pageNo.setVisibility(View.VISIBLE);
             pageNo.setText(getString(R.string.crr_page_number, crrPageNo, totalPageNo));
         } else {
             pageNo.setVisibility(GONE);
         }
 
-        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getActivity(), instaPosts);
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(getActivity(), instaMedias);
         viewPager2.setAdapter(viewPagerAdapter);
 
         viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                InstaPost currPost = instaPosts.get(position);
+                InstaMedia currPost = instaMedias.get(position);
                 getActivity().setTitle(currPost.getId());
                 pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
 
                 if (currPost.isVideo()) {
                     setDataURL(currPost.getVideoUrl());
-                    mFileTitle = "IMG_" + currPost.getVideoUrl().split("\\?")[0];
+                    mFileTitle = "VID_" + currPost.getVideoUrl().split("\\?")[0];
                 } else {
                     setDataURL(currPost.getImageUrl());
-                    mFileTitle = "VID_" + currPost.getImageUrl().split("\\?")[0];
+                    mFileTitle = "IMG_" + currPost.getImageUrl().split("\\?")[0];
                 }
             }
         });
 
-        InstaPost firstPost = instaPosts.get(0);
+        InstaMedia firstPost = instaMedias.get(0);
         loadingPost.setVisibility(GONE);
 
         getActivity().setTitle(firstPost.getId());
 
         if (firstPost.isVideo()) {
             setDataURL(firstPost.getVideoUrl());
-            mFileTitle = "IMG_" + firstPost.getVideoUrl().split("\\?")[0];
+            mFileTitle = "VID_" + firstPost.getVideoUrl().split("\\?")[0];
         } else {
             setDataURL(firstPost.getImageUrl());
-            mFileTitle = "VID_" + firstPost.getImageUrl().split("\\?")[0];
+            mFileTitle = "IMG_" + firstPost.getImageUrl().split("\\?")[0];
         }
 
         Retrofit mRetrofit = initRetrofit();
@@ -200,10 +206,10 @@ public class DownloadPost extends Fragment {
         }
     }
 
-    private class LoadPost extends AsyncTask<String, Void, ArrayList<InstaPost>> {
+    private class LoadPost extends AsyncTask<String, Void, ArrayList<InstaMedia>> {
 
         @Override
-        protected ArrayList<InstaPost> doInBackground(String... strings) {
+        protected ArrayList<InstaMedia> doInBackground(String... strings) {
             Document document = null;
 
             try {
@@ -216,8 +222,8 @@ public class DownloadPost extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<InstaPost> instaPosts) {
-            renderPosts(instaPosts);
+        protected void onPostExecute(ArrayList<InstaMedia> instaMedia) {
+            renderPosts(instaMedia);
         }
 
     }

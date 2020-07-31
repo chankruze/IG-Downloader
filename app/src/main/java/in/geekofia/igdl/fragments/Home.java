@@ -5,9 +5,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,10 +15,12 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.Arrays;
-
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.activities.DownloadActivity;
+
+import static in.geekofia.igdl.utils.Constants.igtvFormat;
+import static in.geekofia.igdl.utils.Constants.postFormat;
+import static in.geekofia.igdl.utils.Constants.reelFormat;
 
 public class Home extends Fragment implements View.OnClickListener {
 
@@ -57,13 +56,10 @@ public class Home extends Fragment implements View.OnClickListener {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Integer check[] = {39, 40, 41};
-                if (Arrays.asList(check).contains(s.toString().trim().length())) {
-                    String url = s.toString().trim();
-                    if (url.startsWith("https://www.instagram.com/p/") ||
-                            url.startsWith("https://www.instagram.com/tv/")) {
-                        mLoadButton.setEnabled(true);
-                    }
+                String url = s.toString().trim();
+                if (url.startsWith(postFormat) ||
+                        url.startsWith(igtvFormat) || url.startsWith(reelFormat)) {
+                    mLoadButton.setEnabled(true);
                 } else {
                     mLoadButton.setEnabled(false);
                     mLoadButton.setText(R.string.str_load);
@@ -83,22 +79,22 @@ public class Home extends Fragment implements View.OnClickListener {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.main_toolbar, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.tb_history:
-//                getActivity().getSupportFragmentManager()
-//                        .beginTransaction()
-//                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-//                        .replace(R.id.fragment_container, new History(), HISTORY_FRAGMENT)
-//                        .addToBackStack(HOME_FRAGMENT)
-//                        .commit();
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+//        inflater.inflate(R.menu.main_toolbar, menu);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        switch (item.getItemId()) {
+//            case R.id.tb_history:
+////                getActivity().getSupportFragmentManager()
+////                        .beginTransaction()
+////                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+////                        .replace(R.id.fragment_container, new History(), HISTORY_FRAGMENT)
+////                        .addToBackStack(HOME_FRAGMENT)
+////                        .commit();
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 }
