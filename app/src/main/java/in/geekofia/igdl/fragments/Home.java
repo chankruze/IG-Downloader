@@ -10,24 +10,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.transition.Explode;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.activities.DownloadActivity;
-
-import static in.geekofia.igdl.activities.MainActivity.HISTORY_FRAGMENT;
-import static in.geekofia.igdl.activities.MainActivity.HOME_FRAGMENT;
 
 public class Home extends Fragment implements View.OnClickListener {
 
@@ -98,12 +92,12 @@ public class Home extends Fragment implements View.OnClickListener {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.tb_history:
-                getActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-                        .replace(R.id.fragment_container, new History(), HISTORY_FRAGMENT)
-                        .addToBackStack(HOME_FRAGMENT)
-                        .commit();
+//                getActivity().getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+//                        .replace(R.id.fragment_container, new History(), HISTORY_FRAGMENT)
+//                        .addToBackStack(HOME_FRAGMENT)
+//                        .commit();
         }
         return super.onOptionsItemSelected(item);
     }

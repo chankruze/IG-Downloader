@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,24 +22,7 @@ import in.geekofia.igdl.models.InstaPost;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import static in.geekofia.igdl.activities.DownloadActivity.TAG;
-
 public class CustomFunctions {
-
-    public static boolean isPrivatePost(String url, String format) {
-        return url.substring(format.length()).length() > 12;
-    }
-
-    public static void writeToFile(String data, Context context, String fileName) {
-        try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(fileName, Context.MODE_PRIVATE));
-            outputStreamWriter.write(data);
-            outputStreamWriter.close();
-        }
-        catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
-        }
-    }
 
     public static Retrofit initRetrofit() {
         return new Retrofit.Builder()
@@ -88,24 +70,22 @@ public class CustomFunctions {
             switch (shortCodeMedia.getString("__typename")) {
                 // only one video
                 case "GraphVideo":
-                    InstaPost instaVideo = new InstaPost(shortCodeMedia.getString("id"),
+                    InstaPost instaVideoOnly = new InstaPost(shortCodeMedia.getString("id"),
                             shortCodeMedia.getString("display_url"),
                             shortCodeMedia.getBoolean("is_video"),
                             shortCodeMedia.getString("video_url"),
                             shortCodeMedia.getBoolean("has_audio"));
 
-                    instaPosts.add(instaVideo);
-                    Log.d(TAG, "doInBackground: " + instaVideo);
+                    instaPosts.add(instaVideoOnly);
                     break;
 
                 // only one image
                 case "GraphImage":
-                    InstaPost instaPost = new InstaPost(shortCodeMedia.getString("id"),
+                    InstaPost instaPostOnly = new InstaPost(shortCodeMedia.getString("id"),
                             shortCodeMedia.getString("display_url"),
                             shortCodeMedia.getBoolean("is_video"));
 
-                    instaPosts.add(instaPost);
-                    Log.d(TAG, "doInBackground: " + instaPost);
+                    instaPosts.add(instaPostOnly);
                     break;
 
                 // multiple media (maybe mixed)
@@ -120,21 +100,17 @@ public class CustomFunctions {
                         boolean isVideo = node.getBoolean("is_video");
 
                         if (isVideo) {
-                            InstaPost instaVideo2 = new InstaPost(node.getString("id"),
+                            InstaPost instaVideo = new InstaPost(node.getString("id"),
                                     node.getString("display_url"),
                                     true,
                                     node.getString("video_url"),
                                     node.getBoolean("has_audio"));
-
-                            instaPosts.add(instaVideo2);
-                            Log.d(TAG, "doInBackground: " + instaVideo2);
+                            instaPosts.add(instaVideo);
                         } else {
                             InstaPost instaPost2 = new InstaPost(node.getString("id"),
                                     node.getString("display_url"),
                                     false);
-
                             instaPosts.add(instaPost2);
-                            Log.d(TAG, "doInBackground: " + instaPost2);
                         }
                     }
                     break;

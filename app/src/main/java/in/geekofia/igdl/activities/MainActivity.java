@@ -12,9 +12,9 @@ import hotchemi.android.rate.AppRate;
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.fragments.Home;
 
-public class MainActivity extends AppCompatActivity {
+import static in.geekofia.igdl.utils.Constants.HOME_FRAGMENT;
 
-    public static final String HOME_FRAGMENT = "HOME_FRAGMENT", HISTORY_FRAGMENT = "HISTORY_FRAGMENT";
+public class MainActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
 
