@@ -18,7 +18,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +32,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,14 +58,21 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.view.View.GONE;
+import static in.geekofia.igdl.utils.CustomFunctions.clipViewSourceURL;
+import static in.geekofia.igdl.utils.CustomFunctions.initRetrofit;
 import static in.geekofia.igdl.utils.CustomFunctions.isPrivatePost;
+import static in.geekofia.igdl.utils.CustomFunctions.parseSource;
 
-public class DownloadActivity extends AppCompatActivity {
+public class DownloadActivity extends AppCompatActivity implements View.OnClickListener{
 
     private String mDataURL, mPostURL, mFileTitle;
     private ViewPager2 viewPager2;
     private Context mContext = this;
     private ShortenApi shortenApi;
+    private ScrollView scrollView;
+    private TextView loadingPost;
+    private Button copyURL, loadMedia;
+    private TextInputEditText inputEditTextSource;
 
     private long downloadID;
 
@@ -106,8 +117,8 @@ public class DownloadActivity extends AppCompatActivity {
                 if (mPostURL.contains(postFormat)) {
                     // check for private/public
                     if (isPrivatePost(mPostURL, postFormat)) {
-//                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mPostURL));
-//                        startActivity(browserIntent);
+                        loadingPost.setVisibility(View.INVISIBLE);
+                        scrollView.setVisibility(View.VISIBLE);
                     } else {
                         mPostURL = mPostURL.substring(mPostURL.indexOf(postFormat), postFormat.length() + 11);
                         new LoadPost().execute(mPostURL);
@@ -124,7 +135,15 @@ public class DownloadActivity extends AppCompatActivity {
     private void initViews() {
         Toolbar mToolbar = findViewById(R.id.dl_toolbar);
         setSupportActionBar(mToolbar);
+
         viewPager2 = findViewById(R.id.view_pager_2);
+        loadingPost = findViewById(R.id.loading_hint);
+        scrollView = findViewById(R.id.sv_private_post_dl);
+        copyURL  = findViewById(R.id.btn_cp_src_url);
+        copyURL.setOnClickListener(this);
+        loadMedia = findViewById(R.id.btn_load_media);
+        loadMedia.setOnClickListener(this);
+        inputEditTextSource = findViewById(R.id.edit_text_source);
     }
 
     public void setDataURL(String mDataURL) {
@@ -149,143 +168,93 @@ public class DownloadActivity extends AppCompatActivity {
         unregisterReceiver(onDownloadComplete);
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_cp_src_url:
+                clipViewSourceURL(mPostURL, this, this);
+                break;
+            case R.id.btn_load_media:
+                scrollView.setVisibility(GONE);
+                try {
+                    Document document = Jsoup.parse(inputEditTextSource.getText().toString());
+                    renderPosts(parseSource(document));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
     private class LoadPost extends AsyncTask<String, Void, ArrayList<InstaPost>> {
 
         @Override
         protected ArrayList<InstaPost> doInBackground(String... strings) {
-            Document document;
-            ArrayList<InstaPost> instaPosts = new ArrayList<>();
+            Document document = null;
 
             try {
                 document = Jsoup.connect(strings[0]).get();
-//                Elements metas = document.getElementsByTag("meta");
-                Element body = document.getElementsByTag("body").get(0);
-                Element rawData = body.getElementsByTag("script").get(0);
-
-                JSONObject jsonData = new JSONObject(rawData.data().substring(20, rawData.data().length() - 1));
-
-                // $.entry_data.PostPage[*].graphql.shortcode_media.edge_sidecar_to_children.edges[*].node.display_url
-                JSONObject shortCodeMedia = jsonData.getJSONObject("entry_data")
-                        .getJSONArray("PostPage")
-                        .getJSONObject(0)
-                        .getJSONObject("graphql")
-                        .getJSONObject("shortcode_media");
-
-                // check type
-                switch (shortCodeMedia.getString("__typename")) {
-                    // only one video
-                    case "GraphVideo":
-                        InstaPost instaVideo = new InstaPost(shortCodeMedia.getString("id"),
-                                shortCodeMedia.getString("display_url"),
-                                shortCodeMedia.getBoolean("is_video"),
-                                shortCodeMedia.getString("video_url"),
-                                shortCodeMedia.getBoolean("has_audio"));
-
-                        instaPosts.add(instaVideo);
-                        Log.d(TAG, "doInBackground: " + instaVideo);
-                        break;
-
-                    // only one image
-                    case "GraphImage":
-                        InstaPost instaPost = new InstaPost(shortCodeMedia.getString("id"),
-                                shortCodeMedia.getString("display_url"),
-                                shortCodeMedia.getBoolean("is_video"));
-
-                        instaPosts.add(instaPost);
-                        Log.d(TAG, "doInBackground: " + instaPost);
-                        break;
-
-                    // multiple media (maybe mixed)
-                    case "GraphSidecar":
-                        JSONArray edges = shortCodeMedia
-                                .getJSONObject("edge_sidecar_to_children")
-                                .getJSONArray("edges");
-
-                        for (int i = 0; i < edges.length(); i++) {
-                            JSONObject node = edges.getJSONObject(i).getJSONObject("node");
-                            // check node prop for media type
-                            boolean isVideo = node.getBoolean("is_video");
-
-                            if (isVideo) {
-                                InstaPost instaVideo2 = new InstaPost(node.getString("id"),
-                                        node.getString("display_url"),
-                                        true,
-                                        node.getString("video_url"),
-                                        node.getBoolean("has_audio"));
-
-                                instaPosts.add(instaVideo2);
-                                Log.d(TAG, "doInBackground: " + instaVideo2);
-                            } else {
-                                InstaPost instaPost2 = new InstaPost(node.getString("id"),
-                                        node.getString("display_url"),
-                                        false);
-
-                                instaPosts.add(instaPost2);
-                                Log.d(TAG, "doInBackground: " + instaPost2);
-                            }
-                        }
-                        break;
-                }
-            } catch (IOException | JSONException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            return instaPosts;
+            return parseSource(document);
         }
 
         @Override
         protected void onPostExecute(ArrayList<InstaPost> instaPosts) {
-            TextView pageNo = viewPager2.getRootView().findViewById(R.id.page_count);
-            int crrPageNo = 1;
-            int totalPageNo = instaPosts.size();
-            // collect all urls and load them in viewpager
-            if (instaPosts.size() > 1) {
-                pageNo.setVisibility(View.VISIBLE);
-                pageNo.setText(getString(R.string.crr_page_number, crrPageNo, totalPageNo));
-            } else {
-                pageNo.setVisibility(GONE);
-            }
-
-            ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(DownloadActivity.this, instaPosts);
-            viewPager2.setAdapter(viewPagerAdapter);
-
-            viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-                @Override
-                public void onPageSelected(int position) {
-                    super.onPageSelected(position);
-                    InstaPost currPost = instaPosts.get(position);
-                    setTitle(currPost.getId());
-                    pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
-
-                    if (currPost.isVideo()) {
-                        setDataURL(currPost.getVideoUrl());
-                        mFileTitle = "IMG_" + currPost.getVideoUrl().split("\\?")[0];
-                    } else {
-                        setDataURL(currPost.getImageUrl());
-                        mFileTitle = "VID_" + currPost.getImageUrl().split("\\?")[0];
-                    }
-                }
-            });
-
-            InstaPost firstPost = instaPosts.get(0);
-
-            TextView loadingPost = findViewById(R.id.loading_hint);
-            loadingPost.setVisibility(GONE);
-
-            setTitle(firstPost.getId());
-
-            if (firstPost.isVideo()) {
-                setDataURL(firstPost.getVideoUrl());
-                mFileTitle = "IMG_" + firstPost.getVideoUrl().split("\\?")[0];
-            } else {
-                setDataURL(firstPost.getImageUrl());
-                mFileTitle = "VID_" + firstPost.getImageUrl().split("\\?")[0];
-            }
-
-            Retrofit mRetrofit = initRetrofit();
-            shortenApi = mRetrofit.create(ShortenApi.class);
+            renderPosts(instaPosts);
         }
 
+    }
+
+    private void renderPosts(ArrayList<InstaPost> instaPosts) {
+        TextView pageNo = viewPager2.getRootView().findViewById(R.id.page_count);
+        int crrPageNo = 1;
+        int totalPageNo = instaPosts.size();
+        // collect all urls and load them in viewpager
+        if (instaPosts.size() > 1) {
+            pageNo.setVisibility(View.VISIBLE);
+            pageNo.setText(getString(R.string.crr_page_number, crrPageNo, totalPageNo));
+        } else {
+            pageNo.setVisibility(GONE);
+        }
+
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(DownloadActivity.this, instaPosts);
+        viewPager2.setAdapter(viewPagerAdapter);
+
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                InstaPost currPost = instaPosts.get(position);
+                setTitle(currPost.getId());
+                pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
+
+                if (currPost.isVideo()) {
+                    setDataURL(currPost.getVideoUrl());
+                    mFileTitle = "IMG_" + currPost.getVideoUrl().split("\\?")[0];
+                } else {
+                    setDataURL(currPost.getImageUrl());
+                    mFileTitle = "VID_" + currPost.getImageUrl().split("\\?")[0];
+                }
+            }
+        });
+
+        InstaPost firstPost = instaPosts.get(0);
+        loadingPost.setVisibility(GONE);
+
+        setTitle(firstPost.getId());
+
+        if (firstPost.isVideo()) {
+            setDataURL(firstPost.getVideoUrl());
+            mFileTitle = "IMG_" + firstPost.getVideoUrl().split("\\?")[0];
+        } else {
+            setDataURL(firstPost.getImageUrl());
+            mFileTitle = "VID_" + firstPost.getImageUrl().split("\\?")[0];
+        }
+
+        Retrofit mRetrofit = initRetrofit();
+        shortenApi = mRetrofit.create(ShortenApi.class);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -358,12 +327,6 @@ public class DownloadActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private Retrofit initRetrofit() {
-        return new Retrofit.Builder()
-                .baseUrl("https://is.gd/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-    }
 
     private void sendDownloadURL() {
         if (!mDataURL.isEmpty()) {

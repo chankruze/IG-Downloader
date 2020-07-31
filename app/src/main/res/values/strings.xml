@@ -14,4 +14,6 @@
 
     <string name="crr_page_number">%1$d/%2$d</string>
     <string name="loading_post_hint">Loading Post....</string>
+    <string name="hint_private_one">1. This post is a private post, click COPY URL button to copy the url and open in your web browser (i.e. chrome)\n\n2. Do select all source code and copy\n\n3. Paste the code below and click LOAD button</string>
+    <string name="hint_private_two">NOTE: You have to login to \"Instagram.com\" in your browser where you are going to open above link. Otherwise the post won\'t load because it\'s a private post.</string>
 </resources>

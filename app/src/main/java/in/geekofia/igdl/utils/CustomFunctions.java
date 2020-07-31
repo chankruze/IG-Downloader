@@ -1,10 +1,29 @@
 package in.geekofia.igdl.utils;
 
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+
+import in.geekofia.igdl.models.InstaPost;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static in.geekofia.igdl.activities.DownloadActivity.TAG;
 
 public class CustomFunctions {
 
@@ -21,5 +40,109 @@ public class CustomFunctions {
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+    }
+
+    public static Retrofit initRetrofit() {
+        return new Retrofit.Builder()
+                .baseUrl("https://is.gd/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+    }
+
+    public static void clipViewSourceURL(String url, Activity activity, Context context) {
+        String newUrl = "view-source:" + url;
+        // Gets a handle to the clipboard service.
+        ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+
+        // Creates a new text clip to put on the clipboard
+        ClipData clip = ClipData.newPlainText("View Source URL", newUrl);
+
+        // Set the clipboard's primary clip.
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(clip);
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("about:blank"));
+            Bundle b = new Bundle();
+            b.putBoolean("new_window", true);
+            intent.putExtras(b);
+            context.startActivity(intent);
+        }
+    }
+
+    public static ArrayList<InstaPost> parseSource(Document document) {
+        ArrayList<InstaPost> instaPosts = new ArrayList<>();
+
+        try {
+            Element body = document.getElementsByTag("body").get(0);
+            Element rawData = body.getElementsByTag("script").get(0);
+
+            JSONObject jsonData = new JSONObject(rawData.data().substring(20, rawData.data().length() - 1));
+
+            // $.entry_data.PostPage[*].graphql.shortcode_media.edge_sidecar_to_children.edges[*].node.display_url
+            JSONObject shortCodeMedia = jsonData.getJSONObject("entry_data")
+                    .getJSONArray("PostPage")
+                    .getJSONObject(0)
+                    .getJSONObject("graphql")
+                    .getJSONObject("shortcode_media");
+
+            // check type
+            switch (shortCodeMedia.getString("__typename")) {
+                // only one video
+                case "GraphVideo":
+                    InstaPost instaVideo = new InstaPost(shortCodeMedia.getString("id"),
+                            shortCodeMedia.getString("display_url"),
+                            shortCodeMedia.getBoolean("is_video"),
+                            shortCodeMedia.getString("video_url"),
+                            shortCodeMedia.getBoolean("has_audio"));
+
+                    instaPosts.add(instaVideo);
+                    Log.d(TAG, "doInBackground: " + instaVideo);
+                    break;
+
+                // only one image
+                case "GraphImage":
+                    InstaPost instaPost = new InstaPost(shortCodeMedia.getString("id"),
+                            shortCodeMedia.getString("display_url"),
+                            shortCodeMedia.getBoolean("is_video"));
+
+                    instaPosts.add(instaPost);
+                    Log.d(TAG, "doInBackground: " + instaPost);
+                    break;
+
+                // multiple media (maybe mixed)
+                case "GraphSidecar":
+                    JSONArray edges = shortCodeMedia
+                            .getJSONObject("edge_sidecar_to_children")
+                            .getJSONArray("edges");
+
+                    for (int i = 0; i < edges.length(); i++) {
+                        JSONObject node = edges.getJSONObject(i).getJSONObject("node");
+                        // check node prop for media type
+                        boolean isVideo = node.getBoolean("is_video");
+
+                        if (isVideo) {
+                            InstaPost instaVideo2 = new InstaPost(node.getString("id"),
+                                    node.getString("display_url"),
+                                    true,
+                                    node.getString("video_url"),
+                                    node.getBoolean("has_audio"));
+
+                            instaPosts.add(instaVideo2);
+                            Log.d(TAG, "doInBackground: " + instaVideo2);
+                        } else {
+                            InstaPost instaPost2 = new InstaPost(node.getString("id"),
+                                    node.getString("display_url"),
+                                    false);
+
+                            instaPosts.add(instaPost2);
+                            Log.d(TAG, "doInBackground: " + instaPost2);
+                        }
+                    }
+                    break;
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return instaPosts;
     }
 }

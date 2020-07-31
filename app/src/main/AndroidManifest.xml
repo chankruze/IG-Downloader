@@ -21,8 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.DownloadActivity"
-            android:excludeFromRecents="true">
+            android:name=".activities.DownloadActivity">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

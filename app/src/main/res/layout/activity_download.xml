@@ -39,4 +39,15 @@
         android:visibility="gone"
         tools:text="1/2" />
 
+    <ScrollView
+        android:id="@+id/sv_private_post_dl"
+        android:visibility="gone"
+        android:layout_below="@id/dl_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <include layout="@layout/private_post_dl"/>
+
+    </ScrollView>
+
 </RelativeLayout>
