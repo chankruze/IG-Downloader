@@ -1,6 +1,8 @@
 package in.geekofia.igdl.fragments;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,6 +56,26 @@ public class PrivatePost extends Fragment implements View.OnClickListener {
         loadMedia = view.getRootView().findViewById(R.id.btn_load_media);
         loadMedia.setOnClickListener(this);
         inputEditTextSource = view.getRootView().findViewById(R.id.edit_text_source);
+        inputEditTextSource.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (editable.toString().contains("</html>")) {
+                    loadMedia.setEnabled(true);
+                } else {
+                    loadMedia.setEnabled(false);
+                }
+            }
+        });
     }
 
     @Override

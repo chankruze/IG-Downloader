@@ -18,7 +18,7 @@
             android:layout_centerHorizontal="true"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Copy URL" />
+            android:text="@string/btn_open_source" />
 
         <TextView
             android:id="@+id/tv_one"
@@ -63,6 +63,7 @@
             android:layout_centerInParent="true"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:enabled="false"
             android:text="Load Media" />
     </RelativeLayout>
 

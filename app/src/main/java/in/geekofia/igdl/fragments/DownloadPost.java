@@ -116,32 +116,19 @@ public class DownloadPost extends Fragment {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                InstaMedia currPost = instaMedias.get(position);
-                getActivity().setTitle(currPost.getId());
+                InstaMedia currMedia = instaMedias.get(position);
+                getActivity().setTitle(currMedia.getId());
                 pageNo.setText(getString(R.string.crr_page_number, position + crrPageNo, totalPageNo));
 
-                if (currPost.isVideo()) {
-                    setDataURL(currPost.getVideoUrl());
-                    mFileTitle = "VID_" + currPost.getVideoUrl().split("\\?")[0];
-                } else {
-                    setDataURL(currPost.getImageUrl());
-                    mFileTitle = "IMG_" + currPost.getImageUrl().split("\\?")[0];
-                }
+                prepDownloadData(currMedia);
             }
         });
 
-        InstaMedia firstPost = instaMedias.get(0);
+        InstaMedia firstMedia = instaMedias.get(0);
         loadingPost.setVisibility(GONE);
 
-        getActivity().setTitle(firstPost.getId());
-
-        if (firstPost.isVideo()) {
-            setDataURL(firstPost.getVideoUrl());
-            mFileTitle = "VID_" + firstPost.getVideoUrl().split("\\?")[0];
-        } else {
-            setDataURL(firstPost.getImageUrl());
-            mFileTitle = "IMG_" + firstPost.getImageUrl().split("\\?")[0];
-        }
+        getActivity().setTitle(firstMedia.getId());
+        prepDownloadData(firstMedia);
 
         Retrofit mRetrofit = initRetrofit();
         shortenApi = mRetrofit.create(ShortenApi.class);
@@ -299,5 +286,17 @@ public class DownloadPost extends Fragment {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void prepDownloadData(InstaMedia instaMedia) {
+        if (instaMedia.isVideo()) {
+            setDataURL(instaMedia.getVideoUrl());
+            String[] vidUrlParts = instaMedia.getVideoUrl().split("\\?")[0].split("/");
+            mFileTitle = "VID_" + vidUrlParts[vidUrlParts.length - 1];
+        } else {
+            setDataURL(instaMedia.getImageUrl());
+            String[] imgUrlParts = instaMedia.getImageUrl().split("\\?")[0].split("/");
+            mFileTitle = "IMG_" + imgUrlParts[imgUrlParts.length - 1];
+        }
     }
 }
