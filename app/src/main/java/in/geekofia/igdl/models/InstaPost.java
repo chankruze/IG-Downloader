@@ -39,4 +39,15 @@ public class InstaPost implements Serializable {
     public void setPostSourceCode(String postSourceCode) {
         this.postSourceCode = postSourceCode;
     }
+
+    @Override
+    public String toString() {
+        return "InstaPost{" +
+                "postUrl='" + postUrl + '\'' +
+                ", postCode='" + postCode + '\'' +
+                ", postType='" + postType + '\'' +
+                ", postSourceCode='" + postSourceCode + '\'' +
+                ", isPrivate=" + isPrivate +
+                '}';
+    }
 }

@@ -50,7 +50,7 @@ public class DownloadActivity extends AppCompatActivity {
 
             // split URL to parts
             String[] urlParts = mPostURL.split("/");
-            String type = urlParts[3], postCode = urlParts[4];
+            String type = urlParts[3], postCode = urlParts[urlParts.length - 1];
 
             Bundle bundle = new Bundle();
             InstaPost instaPost = new InstaPost(mPostURL, postCode, type);

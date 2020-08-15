@@ -18,9 +18,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import in.geekofia.igdl.R;
 import in.geekofia.igdl.activities.DownloadActivity;
 
-import static in.geekofia.igdl.utils.Constants.igtvFormat;
-import static in.geekofia.igdl.utils.Constants.postFormat;
-import static in.geekofia.igdl.utils.Constants.reelFormat;
+import static in.geekofia.igdl.utils.Constants.IGTV_FORMAT;
+import static in.geekofia.igdl.utils.Constants.POST_FORMAT;
+import static in.geekofia.igdl.utils.Constants.REEL_FORMAT;
+import static in.geekofia.igdl.utils.Constants.STORY_FORMAT;
 
 public class Home extends Fragment implements View.OnClickListener {
 
@@ -57,8 +58,9 @@ public class Home extends Fragment implements View.OnClickListener {
             @Override
             public void afterTextChanged(Editable s) {
                 String url = s.toString().trim();
-                if (url.startsWith(postFormat) ||
-                        url.startsWith(igtvFormat) || url.startsWith(reelFormat)) {
+                if (url.startsWith(POST_FORMAT) ||
+                        url.startsWith(IGTV_FORMAT) ||
+                        url.startsWith(REEL_FORMAT)) {
                     mLoadButton.setEnabled(true);
                 } else {
                     mLoadButton.setEnabled(false);
@@ -78,23 +80,4 @@ public class Home extends Fragment implements View.OnClickListener {
                 getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         }
     }
-
-//    @Override
-//    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-//        inflater.inflate(R.menu.main_toolbar, menu);
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.tb_history:
-////                getActivity().getSupportFragmentManager()
-////                        .beginTransaction()
-////                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-////                        .replace(R.id.fragment_container, new History(), HISTORY_FRAGMENT)
-////                        .addToBackStack(HOME_FRAGMENT)
-////                        .commit();
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 }

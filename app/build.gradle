@@ -8,7 +8,7 @@ android {
         applicationId "in.geekofia.igdl"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 38
+        versionCode 51
         versionName "4.0.9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
