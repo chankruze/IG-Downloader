@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
@@ -22,8 +23,8 @@ import in.geekofia.igdl.models.InstaMedia;
 
 
 public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.InstaViewHolder> {
-    private Context context;
-    private ArrayList<InstaMedia> instaMedia;
+    private final Context context;
+    private final ArrayList<InstaMedia> instaMedia;
 
     public ViewPagerAdapter(Context context, ArrayList<InstaMedia> instaMedia) {
         this.context = context;
@@ -58,7 +59,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Inst
 
                 @Override
                 public void onError(Exception e) {
-
+                    Toast.makeText(context, "Error loading media", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -71,9 +72,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Inst
 
     public static class InstaViewHolder extends RecyclerView.ViewHolder {
 
-        private ImageView imageView;
-        private VideoView videoView;
-        private ProgressBar progressBar;
+        private final ImageView imageView;
+        private final VideoView videoView;
+        private final ProgressBar progressBar;
 
         public InstaViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -84,7 +85,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Inst
             videoView = itemView.findViewById(R.id.video_view);
             videoView.setVisibility(View.GONE);
 
-            progressBar = itemView.findViewById(R.id.progress_horizontal);
+            progressBar = itemView.findViewById(R.id.post_progress_horiz);
             progressBar.setVisibility(View.VISIBLE);
         }
     }
