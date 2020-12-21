@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,8 +39,12 @@ public class DownloadActivity extends AppCompatActivity {
         } else if (receivedType.startsWith("text/")) {
             String stringExtra = receivedIntent.getStringExtra(Intent.EXTRA_TEXT);
 
-            if (!stringExtra.isEmpty() || stringExtra.contains("https://www.instagram.com")) {
-                mPostURL = stringExtra;
+            if (!stringExtra.isEmpty()) {
+                if (stringExtra.contains("https://www.instagram.com")) {
+                    mPostURL = stringExtra;
+                } else {
+                    Toast.makeText(this, "Not a instagram URL", Toast.LENGTH_SHORT).show();
+                }
             }
         }
 
